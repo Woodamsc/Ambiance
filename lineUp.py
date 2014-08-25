@@ -74,5 +74,3 @@ class Playlist:
 	def setCurHour(self, newHour):
 		self.curHour = newHour;
 
-	
-play = Playlist()
