@@ -10,6 +10,10 @@ import os, errno, time
 #	It will only have music for the current (and next?) hour
 #	loaded into a lineup (nextHourLineUp?)
 #
+# Notes:
+# 	This class assumes all paths are full qualified
+# 	and doesn't do much defensive programming against the otherwise
+#
 # ToDo:
 # 	Instead of loading all song titles from all hours of the day,
 # 	just load all songs for the current hour
@@ -49,6 +53,7 @@ class Playlist:
 			for hour in xrange(0,24):
 				self.mkFile( os.path.join( 'TimeSlots', self.timeSlots[hour]) );
 
+	# Attempts to make a file/dir. If it exists, fails silently
 	def mkFile(self, path):
 			try:
 				os.mkdir( path )
@@ -65,6 +70,9 @@ class Playlist:
 		else:
 			 lineUpIndex += 1
 		return self.lineUp[lineUpIndex];
+	
+	def setCurHour(self, newHour):
+		self.curHour = newHour;
 
 	
 play = Playlist()
