@@ -20,7 +20,7 @@ import os, errno, time
 # 	 -> Theoretically, then, you could adjust music before it loads
 # 	 	 in the next hour...
 
-class Playlist:
+class LineUp:
 	curHour  = int				# Current hour of day (necessary?)
 	lineUp	= list()			# Current music lineup for the hour
 	lineUpIndex = 0
@@ -34,9 +34,10 @@ class Playlist:
 		timeSlots[hour] = 'Slot: ' + time
 
 
-	def __init__(self):
+	def __init__(self, hour):
+			self.curHour = hour
 			self.createTimeSlots()
-			self.loadLineUp(curHour); 
+			self.loadLineUp(self.curHour); 
 			# How do we keep curHour up to date and accurate?
 			# I want it to update at the instance of hour change
   
@@ -62,7 +63,7 @@ class Playlist:
 					pass
 				else: # Something whacky happened
 					print(e)
-				exit();
+					exit();
 
 	def nextSong(self):
 		if lineUpIndex >= len(lineUp):

@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import schedule
+import schedule, lineUp
 
 # Purpose/Function:
 # 	Provide accurate scheduling for playing music
