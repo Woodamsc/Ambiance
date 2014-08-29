@@ -23,26 +23,23 @@ import os, errno, time
 class LineUp:
 	curHour  = int				# Current hour of day (necessary?)
 	lineUp	= list()			# Current music lineup for the hour
-	lineUpIndex = 0
-
-	timeSlots = dict()
-#	Dirty way to fill the dict()
-	for hour in xrange(0,24):
+	lineUpIndex = 0			# Index for songs within the lineup
+	timeSlots = dict()		# Stores Directory name locations for each hour
+									# Just easier to reference the dirs this way
+	
+	for hour in xrange(0,24):	# Dirty way to fill the dict() 
 		time = '0' + str(hour) + ':00'
 		if hour > 9:
 			time = time[1:]
-		timeSlots[hour] = 'Slot: ' + time
+		timeSlots[hour] = 'Slot: ' + time	# Done filling 
 
-
-	def __init__(self, hour):
-			self.curHour = hour
+	def __init__(self):
+			self.setCurHour()
 			self.createTimeSlots()
 			self.loadLineUp(self.curHour); 
-			# How do we keep curHour up to date and accurate?
-			# I want it to update at the instance of hour change
   
-	# Removes old songs, then loads new songs from the given hour
 	def loadLineUp(self, hour):
+	# Removes old songs, then loads new songs from the given hour
 		for song in self.lineUp:
 			self.lineUp.pop()
 		for curDir, subDirs, files in os.walk( os.path.join( 'TimeSlots', self.timeSlots[hour] ) ):
@@ -54,8 +51,8 @@ class LineUp:
 			for hour in xrange(0,24):
 				self.mkFile( os.path.join( 'TimeSlots', self.timeSlots[hour]) );
 
-	# Attempts to make a file/dir. If it exists, fails silently
 	def mkFile(self, path):
+	# Attempts to make a file/dir. If it exists, fails silently
 			try:
 				os.mkdir( path )
 			except Exception as e:
@@ -71,7 +68,15 @@ class LineUp:
 		else:
 			 lineUpIndex += 1
 		return self.lineUp[lineUpIndex];
-	
-	def setCurHour(self, newHour):
-		self.curHour = newHour;
+
+	@curHour.setter
+	def setCurHour(self):
+	# Sets it to the hour portion of a struct_time object
+		self.curHour = time.localtime()[3];
+
+	@property
+	def getLineUpSize():
+		# return ( lineUp.playtime, len(lineUp) )
+		pass
+
 

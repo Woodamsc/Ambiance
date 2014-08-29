@@ -1,9 +1,28 @@
 #!/usr/bin/python
-import schedule, lineUp
+import schedule, threading
+from lineUp import LineUp
 
 # Purpose/Function:
 # 	Provide accurate scheduling for playing music
-# 	throughout the day, and do so with intelligence.
+# 	throughout the day, and do so with 'intelligence'.
+#	Also keeps the LineUp class' curHour variable
+#	up to date.
+#
+# Intelligence Definition:
+# 	Have three options as core modifiers:
+# 		(1) Seldom
+# 		(2) Periodic
+# 		(3) Often
+#	These choices adjust the frequency songs are
+#	played; the amount of time  before playing the next song.
+#	The full ratio is determined with this modifier and
+#	the total length of playtime each lineUp has.
+#
+#  ToDo:
+#  	Implement 'Intelligence'
+#  	Notifications: Use a config file to allow user to schedule notifications
+#  				   e.g. At Noon play a specific title
+#  				   Consider how to interrupt music currently playing	
 #
 # Notes:
 # 	I'm making use of the schedule module. It seems
@@ -14,5 +33,33 @@ import schedule, lineUp
 # 	Example: https://github.com/mrhwick/schedule/blob/master/schedule/__init__.py
 
 class Scheduler:
-	def self.__init__(self):
-		
+	lineUp = LineUp()
+
+	def __init__(self):
+		scheduleEvents()
+		self.loop()
+
+	def scheduleEvents(self):
+		schedule.do(run_threaded, updateCurHour).at(":00")
+		schedule.do(run_threaded, playNextSong).every.minutes(10)
+#		ToDo: Use lineUp data to play songs periodically
+
+	def updateCurHour(self):
+	# The scheduler calls this method in a newly created thread
+		self.lineUp.setCurHour()
+
+	def playNextSong(self):
+		# Play{ self.lineUp.nextSong() }
+		# Set flag to indicate song is playing 
+
+	def run_threaded(self, func):
+	# This will run any provided function in its own thread
+		func_threaded = threading.Thread(target=func)
+		func_threaded.start()
+
+	def loop(self):
+	# Main loop
+		while True:
+			schedule.run_pending()
+
+sched = Scheduler()
