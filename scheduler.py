@@ -36,12 +36,12 @@ class Scheduler:
 	lineUp = LineUp()
 
 	def __init__(self):
-		scheduleEvents()
+		self.scheduleEvents()
 		self.loop()
 
 	def scheduleEvents(self):
-		schedule.do(run_threaded, updateCurHour).at(":00")
-		schedule.do(run_threaded, playNextSong).every.minutes(10)
+		schedule.every().hour.at(":00").do(self.run_threaded, self.updateCurHour)
+		schedule.every(10).minutes.do(self.run_threaded, self.playNextSong)
 #		ToDo: Use lineUp data to play songs periodically
 
 	def updateCurHour(self):
@@ -51,14 +51,15 @@ class Scheduler:
 	def playNextSong(self):
 		# Play{ self.lineUp.nextSong() }
 		# Set flag to indicate song is playing 
+		pass
 
 	def run_threaded(self, func):
-	# This will run any provided function in its own thread
+		# This will run any provided function in its own thread
 		func_threaded = threading.Thread(target=func)
 		func_threaded.start()
 
 	def loop(self):
-	# Main loop
+		# Main loop
 		while True:
 			schedule.run_pending()
 
