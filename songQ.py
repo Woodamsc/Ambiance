@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import os, errno, time
+import os, errno
 from mutagen.mp3 import MP3
 # Purpose/Function:
 #	Load music to be played for each hour
@@ -34,7 +34,7 @@ class SongQ:
 
 	def __init__(self, hour):
 			self.createTimeSlots()
-			self.loadLineUp(self.curHour); 
+			self.loadNextSongQ(hour); 
 			self.hourlyUpdate() # sets us all up to get rocking
 
 	def createTimeSlots(self):
@@ -56,6 +56,8 @@ class SongQ:
 	def loadNextSongQ(self, hour):
 		# Loads new songs for the given hour
 		# Can load any hour, intended for the next hour 
+		if hour > 23:
+			hour = 0
 		for curDir, subDirs, files in os.walk(os.path.join( 'TimeSlots', self.timeSlots[hour] ) ):
 			for curFile in files:
 				audioFile = os.path.join(curDir, curFile)
@@ -64,7 +66,7 @@ class SongQ:
 
 	def hourlyUpdate(self):
 		# Swap songQs then empty nxtSongQ
-		SongQ, nxtSongQ = nxtSongQ, []
+		self.SongQ, self.nxtSongQ = self.nxtSongQ, []
 		# This one-liner took me by surprise, and is oh so satisfying
 
 	def nextSong(self):
