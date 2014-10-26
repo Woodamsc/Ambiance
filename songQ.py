@@ -43,7 +43,7 @@ class SongQ:
 				self.mkFile( os.path.join( 'TimeSlots', self.timeSlots[hour]) );
 
 	def mkFile(self, path):
-		# Attempts to make a file/dir. If it exists, fails silently
+		# Attempts to make a file/dir. If it already exists, fails silently
 		try:
 			os.mkdir( path )
 		except Exception as e:
@@ -55,9 +55,8 @@ class SongQ:
   
 	def loadNextSongQ(self, hour):
 		# Loads new songs for the given hour
-		# Can load any hour, intended for the next hour 
-		if hour > 23:
-			hour = 0
+		# Can load any hour, but intended for the next hour 
+		hour = hour % 24	# 24 mod 24 == 0; 25 mod 24 == 1
 		for curDir, subDirs, files in os.walk(os.path.join( 'TimeSlots', self.timeSlots[hour] ) ):
 			for curFile in files:
 				audioFile = os.path.join(curDir, curFile)
@@ -70,16 +69,29 @@ class SongQ:
 		# This one-liner took me by surprise, and is oh so satisfying
 
 	def nextSong(self):
-		if songQIndex > len(songQ) - 1:
-			songQIndex = 0
-		else:
-			 songQIndex += 1
-		return self.songQ[songQIndex];
+		Qsize = len(self.songQ)
+		if Qsize > 0:
+			if self.songQIndex >= Qsize: # Perhaps a way to do it with modulo
+				self.songQIndex = 0
+			else:
+				 self.songQIndex += 1
+			return self.songQ[self.songQIndex]
 
-	@property
-	def getSongQInfo():
-		return ( len(songQ), self.songQPlaytime() )
+		else: # Since files can be dynamically loaded/removed
+			self.songQIndex = 0 # Just for safety
+			return None;
 
-	def songQPlaytime(self):
-		pass
+	def getSongQInfo(self):
+	# Return total time of all songs in the Song Queue in seconds
+		return ( self.songQPlayTime(), len(self.songQ) );
+
+	def songQPlayTime(self):
+		totalTime = 0
+		for song in self.SongQ:
+			totalTime = totalTime + self.songPlayTime(song)
+		return totalTime;
+
+	def songPlayTime(self, song):
+		# Returns playtime of a song in seconds
+		return MP3(song).info.length;
 
