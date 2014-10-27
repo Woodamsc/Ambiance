@@ -5,8 +5,14 @@ Create logging class for all classes to use
 Scheduler separates songs by some distance of time.
 Meaning x minutes from the end of one song to the
 beginning of the next.
+Has to added effect of randomizing the start times
+of the next song a bit
 This should probably be used for all audio files
 
 If scheduler is going to handle playing all audio files
 it might start getting complex.
 Just keep that in mind as things progress.
+
+Should a songQ (or any queue) be reshuffled after
+we've gone through all songs?
+

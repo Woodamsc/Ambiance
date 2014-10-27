@@ -48,7 +48,7 @@ class Scheduler:
 	def scheduleAllEvents(self):
 		# Does initial scheduling, only called once. Better method name?...
 		schedule.every().hour.at(":55").do(self.run_threaded, self.songQ.loadNextSongQ,
-																				self.curHour() + 1 )
+																				self.nextHour() )
 		schedule.every().hour.at(":59").do(self.run_threaded, self.hourlyUpdates)
 
 		self.nextSongJob = schedule.every(self.FREQ).minutes.do( self.run_threaded, 
@@ -86,8 +86,10 @@ class Scheduler:
 			schedule.run_pending()
 
 	def curHour(self):
-		return time.localtime()[3] # Grabs hour out of localtime index
+		return time.localtime()[3]
 
+	def nextHour(self):
+		return (self.curHour() + 1) % 24;
 	def remainingTime(self):
 		# Return remaining time in this hour in seconds
 		return (60 - time.localtime()[4]) * 60;

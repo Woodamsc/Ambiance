@@ -56,8 +56,7 @@ class SongQ:
   
 	def loadNextSongQ(self, hour):
 		# Loads new songs for the given hour and randomizes the queue
-		# Can load any hour, but intended for the next hour 
-		hour = hour % 24	# 24 mod 24 == 0; 25 mod 24 == 1
+		hour = hour % 24 # Ensure sanitized input
 		for curDir, subDirs, files in os.walk(os.path.join('TimeSlots',self.timeSlots[hour])):
 			for curFile in files:
 				audioFile = os.path.join(curDir, curFile)
