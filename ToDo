@@ -1,0 +1,12 @@
+Allow classes to output to a single log.
+Create logging class for all classes to use
+
+
+Scheduler separates songs by some distance of time.
+Meaning x minutes from the end of one song to the
+beginning of the next.
+This should probably be used for all audio files
+
+If scheduler is going to handle playing all audio files
+it might start getting complex.
+Just keep that in mind as things progress.

@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import os, errno
+from random import shuffle
 from mutagen.mp3 import MP3
 # Purpose/Function:
 #	Load music to be played for each hour
@@ -21,10 +22,10 @@ from mutagen.mp3 import MP3
 #		currently only supporting mp3
 
 class SongQ:
-	songQ		= []		# Current music lineup for the hour
-	nxtSongQ	= []		# Next hour's song queue
+	songQ			= []		# Current music lineup for the hour
+	nextSongQ	= []		# Next hour's song queue
 	timeSlots 	= dict()	# Stores Directory name locations for each hour
-	songQIndex	= 0			# Index for songs within the queue
+	songQIndex	= 0		# Index for songs within the queue
 	
 	for hour in xrange(0,24):	# Dirty way to fill the dict() 
 		time = '0' + str(hour) + ':00'
@@ -54,29 +55,30 @@ class SongQ:
 				exit();
   
 	def loadNextSongQ(self, hour):
-		# Loads new songs for the given hour
+		# Loads new songs for the given hour and randomizes the queue
 		# Can load any hour, but intended for the next hour 
 		hour = hour % 24	# 24 mod 24 == 0; 25 mod 24 == 1
-		for curDir, subDirs, files in os.walk(os.path.join( 'TimeSlots', self.timeSlots[hour] ) ):
+		for curDir, subDirs, files in os.walk(os.path.join('TimeSlots',self.timeSlots[hour])):
 			for curFile in files:
 				audioFile = os.path.join(curDir, curFile)
-				self.nxtSongQ.append( audioFile );
-				linUpTime += MP3(audioFile).info.length
+				self.nextSongQ.append( audioFile )
+		shuffle(self.nextSongQ);
 
 	def hourlyUpdate(self):
-		# Swap songQs then empty nxtSongQ
-		self.SongQ, self.nxtSongQ = self.nxtSongQ, []
+		# Swap songQs then empty nextSongQ
+		self.songQ, self.nextSongQ = self.nextSongQ, []
 		# This one-liner took me by surprise, and is oh so satisfying
 
 	def nextSong(self):
+		# Return current indexed song, then increase index (if possible)
 		Qsize = len(self.songQ)
 		if Qsize > 0:
-			if self.songQIndex >= Qsize: # Perhaps a way to do it with modulo
-				self.songQIndex = 0
+			oldIndex = self.songQIndex
+			if self.songQIndex < Qsize-1: 	# The '-1' is proper
+				self.songQIndex += 1
 			else:
-				 self.songQIndex += 1
-			return self.songQ[self.songQIndex]
-
+				self.songQIndex  = 0
+			return self.songQ[oldIndex]
 		else: # Since files can be dynamically loaded/removed
 			self.songQIndex = 0 # Just for safety
 			return None;

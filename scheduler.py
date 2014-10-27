@@ -2,16 +2,20 @@
 import schedule, threading, time
 from songQ import SongQ
 
+# Mac only testing stuff
+import subprocess
+
 # Purpose/Function:
 # 	Provide accurate scheduling for playing music
 # 	throughout the day, and do so with 'intelligence'.
 #
 # Intelligence Definition:
-# 	Have three options as core modifiers:
-# 		(1) Seldom  - - 20 minutes
-# 		(2) Periodic  - 10 minutes
-# 		(3) Often - - - 05 minutes
-#	A song will be played at every increment.
+# 	Have three options
+# 		(1) Seldom  - - 10 minutes
+# 		(2) Periodic  - 05 minutes
+# 		(3) Often - - - 02 minutes
+#	This is how much time separates one song from the next.
+#	i.e. How much silence between songs
 #	The songQ is randomly filled, so there should
 #	be a good mix of songs after each rescheduling
 #
@@ -42,30 +46,39 @@ class Scheduler:
 		self.loop()
 
 	def scheduleAllEvents(self):
-		schedule.every().hour.at(":55").do(self.run_threaded, self.songQ.loadNextSongQ(
-																							  self.curHour() + 1) )
+		# Does initial scheduling, only called once. Better method name?...
+		schedule.every().hour.at(":55").do(self.run_threaded, self.songQ.loadNextSongQ,
+																				self.curHour() + 1 )
 		schedule.every().hour.at(":59").do(self.run_threaded, self.hourlyUpdates)
+
+		self.nextSongJob = schedule.every(self.FREQ).minutes.do( self.run_threaded, 
+																					self.playNextSong	)
+		self.playNextSong()
+		# We scheduled songQ swapping, how often to play the next song,
+		# and start immediately playing the next song 
 
 	def playNextSong(self):
 		song = self.songQ.nextSong() 					# Note this will increment songQIndex
-		playTime = self.songQ.songPlayTime(song)	# regardless if it is actually played
-		if playTime <= self.remainingTime():
-			self.songPlaying = True
-			# os.play{ self.songQ.nextSong() }
+		if song != None:									# regardless if it is actually played
+			playTime = self.songQ.songPlayTime(song)
+			if playTime <= self.remainingTime():
+				self.songPlaying = True
+				subprocess.call(["afplay", song])
 
-	def hourlyUpdates(self):
+	def hourlyUpdates(self, *unused): # args unused
 		self.songQ.hourlyUpdate()
-		schedule.cancel_job(nextSongJob) 				# Every hour, recalc freq because there
-		#size, playTime = self.songQ.getSongQInfo()	# can be different songQ size ?ToDo?
-		nextSongJob = schedule.every(	self.FREQ).minutes.do(self.run_threaded, 
+		schedule.cancel_job(self.nextSongJob) 			# Every hour, recalc freq because there
+		# Yep, change this so that a song will play FREQ minutes
+		# after the prev song has ended 
+		self.nextSongJob = schedule.every(self.FREQ).minutes.do(self.run_threaded, 
 												self.playNextSong	)
 		# Right now the FREQ isn't recalculated every hour.
-		# I haven't decided on it's behavior quite yet
+		# I haven't decided on it's behavior quite yet, so I'll leave this for now
 
-	def run_threaded(self, func):
+	def run_threaded(self, func, *args):
 		# This will run any provided function in its own thread
-		func_threaded = threading.Thread(target=func)
-		func_threaded.start()
+		func_threaded = threading.Thread(target=func, args=args)
+		func_threaded.start();
 
 	def loop(self):
 		# Main loop
@@ -76,7 +89,6 @@ class Scheduler:
 		return time.localtime()[3] # Grabs hour out of localtime index
 
 	def remainingTime(self):
-		return time.localtime[4] - 60
-
-sched = Scheduler()
+		# Return remaining time in this hour in seconds
+		return (60 - time.localtime()[4]) * 60;
 
