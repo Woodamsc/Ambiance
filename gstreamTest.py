@@ -3,6 +3,9 @@ pygst.require('0.10')
 import gst
 import time
 
+# I don't know why I have this anymore. I guess I had a plan for it.
+# I'll keep until I remember
+
 class Player(object):
 	def __init__(self, channel):
 		self.pipeline = gst.Pipeline("RadioPipe")

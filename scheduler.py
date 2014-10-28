@@ -2,8 +2,7 @@
 import schedule, threading, time
 from songQ import SongQ
 
-# Mac only testing stuff
-import subprocess
+import subprocess # OSX ONLY
 
 # Purpose/Function:
 # 	Provide accurate scheduling for playing music
@@ -40,7 +39,7 @@ class Scheduler:
 	FREQ	= 10					# Default is Periodic = 10 minutes
 
 	def __init__(self):
-		self.songQ = SongQ(self.curHour())
+		self.songQ = SongQ(curHour())
 		self.scheduleAllEvents()
 		self.loop()
 
@@ -48,11 +47,11 @@ class Scheduler:
 	# Does initial scheduling, only called once. Better method name?...
 	# We schedule songQ swapping, how often to play the next song,
 	# and start immediately playing the next song 
-		schedule.every().hour.at(":59").do( self.run_threaded, 
+		schedule.every().hour.at(":59").do( run_threaded, 
 														self.songQ.loadNextSongQ, 
-														self.nextHour() )
+														nextHour() )
 
-		schedule.every().hour.at(":00").do( self.run_threaded,
+		schedule.every().hour.at(":00").do( run_threaded,
 														self.hourlyUpdates )
 
 #		There shouldn't be a need to schedule the nextSongJob here.
@@ -67,38 +66,51 @@ class Scheduler:
 		song = self.songQ.nextSong() 					# Note this will increment songQIndex
 		if song != None:									# regardless if it is actually played
 			playTime = self.songQ.songPlayTime(song)
-			if playTime <= self.remainingSeconds():
-				newTime = '0' + str(self.curHour()) + ':' + ( (str(self.FREQ) + playTime) / 60 )
-				self.nextSongJob = schedule.at(newTime).do(self.run_threaded, self.playNextSong)
-# NEEDS TESTING ^
+			if playTime <= remainingSeconds():
+				hour 	  = timeStr( curHour() )
+				minute  = timeStr( self.FREQ + ( playTime / 60 ) + curMin() )
+				newTime = hour + ':' + minute
+#				self.nextSongJob = schedule.at(newTime).do(run_threaded, self.playNextSong)
+# NEEDS TESTING ^ Is wrong
 				subprocess.call(["afplay", song]) 	# OSX ONLY
 
 	def hourlyUpdates(self, *unused):
 		self.songQ.hourlyUpdate()
 		schedule.cancel_job(self.nextSongJob) 		# Necessary? The var is overwritten anyway
 		self.playNextSong()
-#		self.nextSongJob = schedule.every(self.FREQ).minutes.do(self.run_threaded, 
+#		self.nextSongJob = schedule.every(self.FREQ).minutes.do(run_threaded, 
 #												self.playNextSong	)
 
-	def run_threaded(self, func, *args):
-	# This will run any provided function in its own thread
-		func_threaded = threading.Thread(target=func, args=args)
-		func_threaded.start();
+def run_threaded(func, *args):
+# This will run any provided function in its own thread
+	func_threaded = threading.Thread(target=func, args=args)
+	func_threaded.start();
 
 	def loop(self):
 	# Main loop
 		while True:
 			schedule.run_pending()
 
-	def curHour(self):
-		return time.localtime()[3]
+def curHour():
+	return time.localtime()[3]
 
-	def nextHour(self):
-		return (self.curHour() + 1) % 24;
+def curMin():
+	return time.localtime()[4]
 
-	def remainingMinutes(self):
-		return (60 - time.localtime()[4] );
+def nextHour():
+	return (curHour() + 1) % 24;
 
-	def remainingSeconds(self):
-		return self.remainingMinutes() * 60;
+def remainingMinutes():
+	return (60 - time.localtime()[4] );
+
+def remainingSeconds():
+	return remainingMinutes() * 60;
+
+def timeStr(numb):
+# Formats a number so it's time compatible.
+# e.g. '5' => '05'
+# Helps us build '05:01'
+	if numb < 10:
+		return '0' + str( numb )
+	return str( numb )
 
