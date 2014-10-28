@@ -42,46 +42,51 @@ class Scheduler:
 	def __init__(self):
 		self.songQ = SongQ(self.curHour())
 		self.scheduleAllEvents()
-		# Load songQ initially and play next song
 		self.loop()
 
 	def scheduleAllEvents(self):
-		# Does initial scheduling, only called once. Better method name?...
-		schedule.every().hour.at(":55").do(self.run_threaded, self.songQ.loadNextSongQ,
-																				self.nextHour() )
-		schedule.every().hour.at(":59").do(self.run_threaded, self.hourlyUpdates)
+	# Does initial scheduling, only called once. Better method name?...
+	# We schedule songQ swapping, how often to play the next song,
+	# and start immediately playing the next song 
+		schedule.every().hour.at(":59").do( self.run_threaded, 
+														self.songQ.loadNextSongQ, 
+														self.nextHour() )
 
-		self.nextSongJob = schedule.every(self.FREQ).minutes.do( self.run_threaded, 
-																					self.playNextSong	)
+		schedule.every().hour.at(":00").do( self.run_threaded,
+														self.hourlyUpdates )
+
+#		There shouldn't be a need to schedule the nextSongJob here.
+#		We'll atempt to play and schedule the next song on the next line.
+#		The only situation where a song won't immediately play is if
+#		it's playTime is longer than the time remaining in the hour.
+#		In which case, hourlyUpdates() is called & will create a scheduled
+#		job to call playNextSong()
 		self.playNextSong()
-		# We scheduled songQ swapping, how often to play the next song,
-		# and start immediately playing the next song 
 
 	def playNextSong(self):
 		song = self.songQ.nextSong() 					# Note this will increment songQIndex
 		if song != None:									# regardless if it is actually played
 			playTime = self.songQ.songPlayTime(song)
-			if playTime <= self.remainingTime():
-				# Schedule next song to play at song.info.length + FREQ minutes
-				newTime = '0' + str(self.curHour()) + ':' + ( str(self.FREQ)
-																		+ self.songQ.songPlayTime(song) / 60 )
+			if playTime <= self.remainingSeconds():
+				newTime = '0' + str(self.curHour()) + ':' + ( (str(self.FREQ) + playTime) / 60 )
 				self.nextSongJob = schedule.at(newTime).do(self.run_threaded, self.playNextSong)
-# NEEDS TESTING
-				subprocess.call(["afplay", song])
+# NEEDS TESTING ^
+				subprocess.call(["afplay", song]) 	# OSX ONLY
 
-	def hourlyUpdates(self, *unused): # args unused
+	def hourlyUpdates(self, *unused):
 		self.songQ.hourlyUpdate()
-		schedule.cancel_job(self.nextSongJob) 			# Every hour, recalc freq because there
-		self.nextSongJob = schedule.every(self.FREQ).minutes.do(self.run_threaded, 
-												self.playNextSong	)
+		schedule.cancel_job(self.nextSongJob) 		# Necessary? The var is overwritten anyway
+		self.playNextSong()
+#		self.nextSongJob = schedule.every(self.FREQ).minutes.do(self.run_threaded, 
+#												self.playNextSong	)
 
 	def run_threaded(self, func, *args):
-		# This will run any provided function in its own thread
+	# This will run any provided function in its own thread
 		func_threaded = threading.Thread(target=func, args=args)
 		func_threaded.start();
 
 	def loop(self):
-		# Main loop
+	# Main loop
 		while True:
 			schedule.run_pending()
 
@@ -90,7 +95,10 @@ class Scheduler:
 
 	def nextHour(self):
 		return (self.curHour() + 1) % 24;
-	def remainingTime(self):
-		# Return remaining time in this hour in seconds
-		return (60 - time.localtime()[4]) * 60;
+
+	def remainingMinutes(self):
+		return (60 - time.localtime()[4] );
+
+	def remainingSeconds(self):
+		return self.remainingMinutes() * 60;
 
