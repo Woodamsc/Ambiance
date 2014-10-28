@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import os, errno
+from time_Ambiant import *
 from random import shuffle
 from mutagen.mp3 import MP3
 # Purpose/Function:
@@ -16,27 +17,23 @@ from mutagen.mp3 import MP3
 # 	and doesn't do much defensive programming against the otherwise
 #
 # ToDo:
-# 	Create getter to return playlist info such as
-# 		playlist total length and # of songs
 #	Add support for multiple types of music files
 #		currently only supporting mp3
 
 class SongQ:
-	songQ			= []		# Current music lineup for the hour
-	nextSongQ	= []		# Next hour's song queue
-	timeSlots 	= dict()	# Stores Directory name locations for each hour
-	songQIndex	= 0		# Index for songs within the queue
+	songQ			= []				# Current music lineup for the hour
+	nextSongQ	= []				# Next hour's song queue
+	timeSlots 	= dict()			# Stores Directory name locations for each hour
+	songQIndex	= 0				# Index for songs within the queue
 	
-	for hour in xrange(0,24):	# Dirty way to fill the dict() 
-		time = '0' + str(hour) + ':00'
-		if hour > 9:
-			time = time[1:]
-		timeSlots[hour] = 'Slot: ' + time	# Done filling 
+	for hour in xrange(0,24):
+		time = timeStr(hour) + ':00'
+		timeSlots[hour] = 'Slot: ' + time
 
 	def __init__(self, hour):
 			self.createTimeSlots()
 			self.loadNextSongQ(hour); 
-			self.hourlyUpdate() # sets us all up to get rocking
+			self.hourlyUpdate()
 
 	def createTimeSlots(self):
 			self.mkFile('TimeSlots')
@@ -44,7 +41,7 @@ class SongQ:
 				self.mkFile( os.path.join( 'TimeSlots', self.timeSlots[hour]) );
 
 	def mkFile(self, path):
-		# Attempts to make a file/dir. If it already exists, fails silently
+	# Attempts to make a file/dir. If it already exists, fails silently
 		try:
 			os.mkdir( path )
 		except Exception as e:
@@ -55,7 +52,7 @@ class SongQ:
 				exit();
   
 	def loadNextSongQ(self, hour):
-		# Loads new songs for the given hour and randomizes the queue
+	# Loads new songs for the given hour and randomizes the queue
 		hour = hour % 24 # Ensure sanitized input
 		for curDir, subDirs, files in os.walk(os.path.join('TimeSlots',self.timeSlots[hour])):
 			for curFile in files:
@@ -64,12 +61,10 @@ class SongQ:
 		shuffle(self.nextSongQ);
 
 	def hourlyUpdate(self):
-		# Swap songQs then empty nextSongQ
 		self.songQ, self.nextSongQ = self.nextSongQ, []
-		# This one-liner took me by surprise, and is oh so satisfying
 
 	def nextSong(self):
-		# Return current indexed song, then increase index (if possible)
+	# Return current indexed song, then increase index (if possible)
 		Qsize = len(self.songQ)
 		if Qsize > 0:
 			oldIndex = self.songQIndex
@@ -93,6 +88,6 @@ class SongQ:
 		return totalTime;
 
 	def songPlayTime(self, song):
-		# Returns playtime of a song in seconds
+	# Returns playtime of a song in seconds
 		return MP3(song).info.length;
 

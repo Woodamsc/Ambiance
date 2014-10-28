@@ -1,5 +1,6 @@
 #!/usr/bin/python
-import schedule, threading, time
+import schedule, threading
+from time_Ambiant import *
 from songQ import SongQ
 
 import subprocess # OSX ONLY
@@ -66,7 +67,7 @@ class Scheduler:
 		song = self.songQ.nextSong() 					# Note this will increment songQIndex
 		if song != None:									# regardless if it is actually played
 			playTime = self.songQ.songPlayTime(song)
-			if playTime <= remainingSeconds():
+			if playTime <= remainingSecs():
 				hour 	  = timeStr( curHour() )
 				minute  = timeStr( self.FREQ + ( playTime / 60 ) + curMin() )
 				newTime = hour + ':' + minute
@@ -90,27 +91,4 @@ def run_threaded(func, *args):
 	# Main loop
 		while True:
 			schedule.run_pending()
-
-def curHour():
-	return time.localtime()[3]
-
-def curMin():
-	return time.localtime()[4]
-
-def nextHour():
-	return (curHour() + 1) % 24;
-
-def remainingMinutes():
-	return (60 - time.localtime()[4] );
-
-def remainingSeconds():
-	return remainingMinutes() * 60;
-
-def timeStr(numb):
-# Formats a number so it's time compatible.
-# e.g. '5' => '05'
-# Helps us build '05:01'
-	if numb < 10:
-		return '0' + str( numb )
-	return str( numb )
 
