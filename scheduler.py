@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import schedule, threading
 from log import log
-from time_Ambiant import *
+from time_Ambiance import *
 from songQ import SongQ
 
 #import subprocess # OSX ONLY

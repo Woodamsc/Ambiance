@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import os, errno
 from log import log
-from time_Ambiant import *
+from time_Ambiance import *
 from random import shuffle
 from mutagen.mp3 import MP3
 # Purpose/Function:
@@ -43,14 +43,15 @@ class SongQ:
 
 	def mkFile(self, path):
 	# Attempts to make a file/dir. If it already exists, fails silently
+	# Okay, so right now it only makes dirs, but maybe later...
 		try:
 			os.mkdir( path )
-			log('SongQ', 'Creating dir '+str(path))
+			log('SongQ', 'Created dir '+str(path))
 		except Exception as e:
 			if e.errno == 17: # File Exists Error, OK move on to next dir
 				pass
 			else: # Something whacky happened
-				print(e)
+				log('songQ',e)
 				exit();
   
 	def loadNextSongQ(self, hour):

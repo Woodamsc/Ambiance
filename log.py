@@ -1,5 +1,5 @@
 #!/usr/bin/python
-from time_Ambiant import *
+from time_Ambiance import *
 
 # Purpose/Function:
 #  A generic logger to allow separate classes to
