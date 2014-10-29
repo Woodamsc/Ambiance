@@ -27,3 +27,6 @@ def timeStr(numb):
 		return '0' + str(numb)
 	return str(numb);
 
+def curTime():
+	return timeStr(curHour()) + ':' +timeStr(curMin()) + ':' + timeStr(curSec());
+

@@ -1,12 +1,13 @@
 #!/usr/bin/python
 import schedule, threading
+from log import log
 from time_Ambiant import *
 from songQ import SongQ
 
-import subprocess # OSX ONLY
+#import subprocess # OSX ONLY
 
 # Purpose/Function:
-# 	Provide accurate scheduling for playing music
+# 	Provide accurate scheduling for playing audio files
 # 	throughout the day, and do so with 'intelligence'.
 #
 # Intelligence Definition:
@@ -16,11 +17,15 @@ import subprocess # OSX ONLY
 # 		(3) Often - - - 02 minutes
 #	This is how much time separates one song from the next.
 #	i.e. How much silence between songs
-#	The songQ is randomly filled, so there should
-#	be a good mix of songs after each rescheduling
+#
+#	This should also dictate background noise when we get
+#	there.
+#
+#	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-
 #
 #  ToDo:
-#  	Notifications: Use a config file to allow user to schedule notifications
+#  	Notifications: Use a config file to allow user to schedule 
+#  					notifications.
 #  				   e.g. At Noon play a specific title
 #  				   Consider how to interrupt music currently playing	
 #  	Use os module to play songs - use os default program to play
@@ -64,7 +69,9 @@ class Scheduler:
 		self.playNextSong()
 
 	def playNextSong(self):
+		log('Scheduler', 'Loading next song')
 		song = self.songQ.nextSong() 					# Note this will increment songQIndex
+		log('Scheduler', 'Loaded \''+str(song)+'\'')
 		if song != None:									# regardless if it is actually played
 			playTime = self.songQ.songPlayTime(song)
 			if playTime <= remainingSecs():
@@ -73,22 +80,24 @@ class Scheduler:
 				newTime = hour + ':' + minute
 #				self.nextSongJob = schedule.at(newTime).do(run_threaded, self.playNextSong)
 # NEEDS TESTING ^ Is wrong
-				subprocess.call(["afplay", song]) 	# OSX ONLY
+				log('Scheduler', 'Scheduled next song for '+newTime)
+				log('Scheduler', 'Now playing \''+str(song)+'\'')
+#				subprocess.call(["afplay", song]) 	# OSX ONLY
 
 	def hourlyUpdates(self, *unused):
+		log('Scheduler', 'Turn of hour, running updates')
 		self.songQ.hourlyUpdate()
 		schedule.cancel_job(self.nextSongJob) 		# Necessary? The var is overwritten anyway
 		self.playNextSong()
-#		self.nextSongJob = schedule.every(self.FREQ).minutes.do(run_threaded, 
-#												self.playNextSong	)
-
-def run_threaded(func, *args):
-# This will run any provided function in its own thread
-	func_threaded = threading.Thread(target=func, args=args)
-	func_threaded.start();
+#		self.nextSongJob = schedule.every(self.FREQ).minutes.do(run_threaded, self.playNextSong	)
 
 	def loop(self):
 	# Main loop
 		while True:
 			schedule.run_pending()
+
+def run_threaded(func, *args):
+# This will run any provided function in its own thread
+	func_threaded = threading.Thread(target=func, args=args)
+	func_threaded.start();
 

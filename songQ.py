@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import os, errno
+from log import log
 from time_Ambiant import *
 from random import shuffle
 from mutagen.mp3 import MP3
@@ -44,6 +45,7 @@ class SongQ:
 	# Attempts to make a file/dir. If it already exists, fails silently
 		try:
 			os.mkdir( path )
+			log('SongQ', 'Creating dir '+str(path))
 		except Exception as e:
 			if e.errno == 17: # File Exists Error, OK move on to next dir
 				pass
@@ -61,6 +63,7 @@ class SongQ:
 		shuffle(self.nextSongQ);
 
 	def hourlyUpdate(self):
+		log('SongQ', 'Loading next SongQ')
 		self.songQ, self.nextSongQ = self.nextSongQ, []
 
 	def nextSong(self):
@@ -73,8 +76,8 @@ class SongQ:
 			else:
 				self.songQIndex  = 0
 			return self.songQ[oldIndex]
-		else: # Since files can be dynamically loaded/removed
-			self.songQIndex = 0 # Just for safety
+		else:
+			self.songQIndex = 0
 			return None;
 
 	def getSongQInfo(self):
