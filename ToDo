@@ -1,6 +1,5 @@
-Allow classes to output to a single log.
-Create logging class for all classes to use
-
 Should a songQ (or any queue) be reshuffled after
 we've gone through all songs?
+
+Explore uses of gstreamer as cross-platform way to play audio
 
