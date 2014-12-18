@@ -44,8 +44,8 @@ class Scheduler:
 	songQ = None				# Variable for our SongQ class
 	FREQ	= 10					# Default is Periodic = 10 minutes
 
-	def __init__(self):
-		self.songQ = SongQ(curHour())
+	def __init__(self, songQ):
+		self.songQ = songQ
 		self.scheduleAllEvents()
 		self.loop()
 
@@ -82,6 +82,8 @@ class Scheduler:
 # NEEDS TESTING ^ Is wrong
 				log('Scheduler', 'Scheduled next song for '+newTime)
 				log('Scheduler', 'Now playing \''+str(song)+'\'')
+#				subprocess.call(["xmms2", "add", song])
+#				subprocess.call(["xmms2", "play"])				
 #				subprocess.call(["afplay", song]) 	# OSX ONLY
 
 	def hourlyUpdates(self, *unused):

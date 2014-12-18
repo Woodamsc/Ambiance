@@ -27,33 +27,11 @@ class SongQ:
 	timeSlots 	= dict()			# Stores Directory name locations for each hour
 	songQIndex	= 0				# Index for songs within the queue
 	
-	for hour in xrange(0,24):
-		time = timeStr(hour) + ':00'
-		timeSlots[hour] = 'Slot: ' + time
-
-	def __init__(self, hour):
-			self.createTimeSlots()
+	def __init__(self, timeSlots, hour):
+			self.timeSlots = timeSlots
 			self.loadNextSongQ(hour); 
 			self.hourlyUpdate()
 
-	def createTimeSlots(self):
-			self.mkFile('TimeSlots')
-			for hour in xrange(0,24):
-				self.mkFile( os.path.join( 'TimeSlots', self.timeSlots[hour]) );
-
-	def mkFile(self, path):
-	# Attempts to make a file/dir. If it already exists, fails silently
-	# Okay, so right now it only makes dirs, but maybe later...
-		try:
-			os.mkdir( path )
-			log('SongQ', 'Created dir '+str(path))
-		except Exception as e:
-			if e.errno == 17: # File Exists Error, OK move on to next dir
-				pass
-			else: # Something whacky happened
-				log('songQ',e)
-				exit();
-  
 	def loadNextSongQ(self, hour):
 	# Loads new songs for the given hour and randomizes the queue
 		hour = hour % 24 # Ensure sanitized input
