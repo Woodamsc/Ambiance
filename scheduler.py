@@ -1,22 +1,19 @@
 #!/usr/bin/python
-import schedule, threading
+import schedule, threading, time, subprocess
 from log import log
 from time_Ambiance import *
 from songQ import SongQ
 
-#import subprocess # OSX ONLY
-
 # Purpose/Function:
 # 	Provide accurate scheduling for playing audio files
-# 	throughout the day, and do so with 'intelligence'.
+# 	throughout the day.
 #
-# Intelligence Definition:
 # 	Have three options
 # 		(1) Seldom  - - 10 minutes
 # 		(2) Periodic  - 05 minutes
 # 		(3) Often - - - 02 minutes
 #	This is how much time separates one song from the next.
-#	i.e. How much silence between songs
+#	i.e. How much silence inbetween songs
 #
 #	This should also dictate background noise when we get
 #	there.
@@ -28,7 +25,6 @@ from songQ import SongQ
 #  					notifications.
 #  				   e.g. At Noon play a specific title
 #  				   Consider how to interrupt music currently playing	
-#  	Use os module to play songs - use os default program to play
 #
 # Notes:
 # 	I'm making use of the schedule module. It seems
@@ -38,11 +34,15 @@ from songQ import SongQ
 # 	Example: https://github.com/dbader/schedule/blob/master/FAQ.rst
 # 	Example: https://github.com/mrhwick/schedule/blob/master/schedule/__init__.py
 
+SELDOM	= 10
+PERIODIC = 5
+OFTEN		= 2
+
 class Scheduler:
 	songPlaying = False		# Pretty straightforward boolean
 	nextSongJob = None		# Holds the job that periodically plays the next song
 	songQ = None				# Variable for our SongQ class
-	FREQ	= 10					# Default is Periodic = 10 minutes
+	FREQ	= 	PERIODIC			# Default is Periodic = 5 minutes
 
 	def __init__(self, songQ):
 		self.songQ = songQ
@@ -70,33 +70,41 @@ class Scheduler:
 
 	def playNextSong(self):
 		log('Scheduler', 'Loading next song')
-		song = self.songQ.nextSong() 					# Note this will increment songQIndex
+		song = self.songQ.nextSong()
 		log('Scheduler', 'Loaded \''+str(song)+'\'')
-		if song != None:									# regardless if it is actually played
-			playTime = self.songQ.songPlayTime(song)
-			if playTime <= remainingSecs():
-				hour 	  = timeStr( curHour() )
-				minute  = timeStr( self.FREQ + ( playTime / 60 ) + curMin() )
-				newTime = hour + ':' + minute
-#				self.nextSongJob = schedule.at(newTime).do(run_threaded, self.playNextSong)
-# NEEDS TESTING ^ Is wrong
+		if song != None:
+			log('Scheduler', 'Now playing \''+str(song)+'\'')
+			subprocess.call(["xmms2", "clear"])
+			subprocess.call(["xmms2", "add", song])
+			subprocess.call(["xmms2", "play"])				
+#			subprocess.call(["afplay", song]) 	# OSX ONLY
+
+			playTime = int(self.songQ.songPlayTime(song)) # Get data from xmms2?
+			hour     = timeStr(curHour())
+			minute   = timeStr(self.FREQ + (secs2min(playTime) / 60) + curMin())
+			newTime  = str( hour + ':' + minute )
+			if int(minute) < 60 and int(minute) >= 0:
+				print 'yes', minute
+				self.nextSongJob = schedule.every().hour.at(':'+minute).do( 
+																				run_threaded,
+																				self.playNextSong )
 				log('Scheduler', 'Scheduled next song for '+newTime)
-				log('Scheduler', 'Now playing \''+str(song)+'\'')
-#				subprocess.call(["xmms2", "add", song])
-#				subprocess.call(["xmms2", "play"])				
-#				subprocess.call(["afplay", song]) 	# OSX ONLY
+			else:
+				print 'no', minute
+				schedule.cancel_job(self.nextSongJob) # should get cancelled soon
+				log('Scheduler', 'End of hour, did not reschedule.')
 
 	def hourlyUpdates(self, *unused):
 		log('Scheduler', 'Turn of hour, running updates')
 		self.songQ.hourlyUpdate()
-		schedule.cancel_job(self.nextSongJob) 		# Necessary? The var is overwritten anyway
+		schedule.cancel_job(self.nextSongJob) # good to leave in
 		self.playNextSong()
-#		self.nextSongJob = schedule.every(self.FREQ).minutes.do(run_threaded, self.playNextSong	)
 
 	def loop(self):
 	# Main loop
 		while True:
 			schedule.run_pending()
+			time.sleep(.5)
 
 def run_threaded(func, *args):
 # This will run any provided function in its own thread

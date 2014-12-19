@@ -5,7 +5,7 @@ def remainingMins():
 	return ( 60 - curMin() );
 
 def remainingSecs():
-	return ( 60 - curSec() );
+	return ( 3600 - curSec() );
 
 def curHour():
 	return time.localtime()[3];
@@ -18,6 +18,12 @@ def curSec():
 
 def nextHour():
 	return (curHour() + 1) % 24;
+
+def secs2min(secs):
+# always rounds up
+	if secs % 60 != 0:
+		return (secs / 60) + 1
+	return secs / 60
 
 def timeStr(numb):
 # Formats a number so it's better
