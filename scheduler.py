@@ -1,5 +1,7 @@
 #!/usr/bin/python
-import schedule, threading, time, subprocess
+import schedule, threading, time
+
+from subprocess import call
 from log import log
 from time_Ambiance import *
 from songQ import SongQ
@@ -74,10 +76,10 @@ class Scheduler:
 		log('Scheduler', 'Loaded \''+str(song)+'\'')
 		if song != None:
 			log('Scheduler', 'Now playing \''+str(song)+'\'')
-			subprocess.call(["xmms2", "clear"])
-			subprocess.call(["xmms2", "add", song])
-			subprocess.call(["xmms2", "play"])				
-#			subprocess.call(["afplay", song]) 	# OSX ONLY
+			call(["xmms2", "clear"])
+			call(["xmms2", "add", song])
+			call(["xmms2", "play"])				
+#			call(["afplay", song]) 	# OSX ONLY
 
 			playTime = int(self.songQ.songPlayTime(song)) # Get data from xmms2?
 			hour     = timeStr(curHour())

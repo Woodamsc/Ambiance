@@ -6,6 +6,7 @@ from scheduler import Scheduler
 from songQ import SongQ
 from log import log
 from time_Ambiance import *
+from subprocess import call
 
 timeSlots = dict()
 
@@ -33,6 +34,10 @@ def mkDir(dirName):
 			log('Setup', e)
 			print( 'Uh-oh. Something weird occured. Check `.log` for more details')
 			exit();
+
+if call(['which', 'xmms2']):
+	print("'xmms2' is not installed or PATH is incorrectly set")
+	exit(1)
 
 setup()
 
