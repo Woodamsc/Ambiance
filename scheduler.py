@@ -76,7 +76,7 @@ class Scheduler:
 		log('Scheduler', 'Loaded \''+str(song)+'\'')
 		if song != None:
 			log('Scheduler', 'Now playing \''+str(song)+'\'')
-			call(["play", song])	# sox must be installed
+			call(['play', '-q', song])	# sox must be installed
 										# libsox-fmt-mp3 to support mp3 files
 
 			playTime = int(self.songQ.songPlayTime(song)) # Get data from xmms2?
