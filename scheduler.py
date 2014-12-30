@@ -84,7 +84,6 @@ class Scheduler:
 			minute   = timeStr(self.FREQ + (secs2min(playTime) / 60) + curMin())
 			newTime  = str( hour + ':' + minute )
 			if int(minute) < 60 and int(minute) >= 0:
-				print 'yes', minute
 				self.nextSongJob = schedule.every().hour.at(':'+minute).do( 
 																				run_threaded,
 																				self.playNextSong )
