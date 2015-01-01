@@ -75,11 +75,9 @@ class Scheduler:
 		song = self.songQ.nextSong()
 		log('Scheduler', 'Loaded \''+str(song)+'\'')
 		if song != None:
-			log('Scheduler', 'Now playing \''+str(song)+'\'')
-			call(['play', '-q', song])	# sox must be installed
-										# libsox-fmt-mp3 to support mp3 files
+			play(song)
 
-			playTime = int(self.songQ.songPlayTime(song)) # Get data from xmms2?
+			playTime = int(self.songQ.songPlayTime(song))
 			hour     = timeStr(curHour())
 			minute   = timeStr(self.FREQ + (secs2min(playTime) / 60) + curMin())
 			newTime  = str( hour + ':' + minute )
@@ -87,16 +85,15 @@ class Scheduler:
 				self.nextSongJob = schedule.every().hour.at(':'+minute).do( 
 																				run_threaded,
 																				self.playNextSong )
-				log('Scheduler', 'Scheduled next song for '+newTime)
+				log('Scheduler', 'Scheduled next song for ' + newTime)
 			else:
-				print 'no', minute
-				schedule.cancel_job(self.nextSongJob) # should get cancelled soon
+				schedule.cancel_job(self.nextSongJob) # should get cancelled soon anyway
 				log('Scheduler', 'End of hour, did not reschedule.')
 
 	def hourlyUpdates(self, *unused):
 		log('Scheduler', 'Turn of hour, running updates')
 		self.songQ.hourlyUpdate()
-		schedule.cancel_job(self.nextSongJob) # good to leave in
+		schedule.cancel_job(self.nextSongJob) # this is necessary
 		self.playNextSong()
 
 	def loop(self):
@@ -104,6 +101,11 @@ class Scheduler:
 		while True:
 			schedule.run_pending()
 			time.sleep(.5)
+
+def play(song):
+	log('Scheduler', 'Now playing \''+str(song)+'\'')
+	call(['play', '-q', song])	# sox must be installed
+										# libsox-fmt-mp3 to support mp3 files
 
 def run_threaded(func, *args):
 # This will run any provided function in its own thread
