@@ -20,8 +20,21 @@ def setup():
 
 def createTimeSlots():
 	mkDir('TimeSlots')
+	mkDir('TimeSlots/Day')
+	mkDir('TimeSlots/Day/Songs')
+	mkDir('TimeSlots/Day/Background')
+	mkDir('TimeSlots/Night')
+	mkDir('TimeSlots/Night/Songs')
+	mkDir('TimeSlots/Night/Background')
 	for hour in xrange(0,24):
-		mkDir( os.path.join( 'TimeSlots', timeSlots[hour] ) );
+		if hour > 7 and hour < 20:
+			mkDir( os.path.join( 'TimeSlots/Day', timeSlots[hour] ) )
+			mkDir( os.path.join( 'TimeSlots/Day', timeSlots[hour], 'Songs' ) )
+			mkDir( os.path.join( 'TimeSlots/Day', timeSlots[hour], 'Background' ) )
+		else:
+			mkDir( os.path.join( 'TimeSlots/Night', timeSlots[hour] ) );
+			mkDir( os.path.join( 'TimeSlots/Night', timeSlots[hour], 'Songs' ) );
+			mkDir( os.path.join( 'TimeSlots/Night', timeSlots[hour], 'Background' ) );
 
 def mkDir(dirName):
 	try:

@@ -35,10 +35,22 @@ class SongQ:
 	def loadNextSongQ(self, hour):
 	# Loads new songs for the given hour and randomizes the queue
 		hour = hour % 24 # Ensure sanitized input
-		for curDir, subDirs, files in os.walk(os.path.join('TimeSlots',self.timeSlots[hour])):
+		ToD = 'Night'
+		if hour > 7 and hour < 20:
+			ToD = 'Day'
+
+		# Scan the `ToD`/Music directory for songs to play
+		for curDir, subDirs, files in os.walk( os.path.join( 'TimeSlots', ToD, 'Songs' ) ):
 			for curFile in files:
 				audioFile = os.path.join(curDir, curFile)
 				self.nextSongQ.append( audioFile )
+
+		# Now scan the `ToD`/`hour`/Music directory for songs to play
+		for files in os.walk( os.path.join( 'TimeSlots', ToD, str(hour), 'Songs' ) ):
+			for curDir, subDirs, curFile in files:
+				audioFile = os.path.join(curDir, curFile)
+				self.nextSongQ.append( audioFile )
+
 		shuffle(self.nextSongQ);
 
 	def hourlyUpdate(self):
