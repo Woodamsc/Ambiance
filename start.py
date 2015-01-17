@@ -3,7 +3,7 @@
 import os, errno
 
 from scheduler import Scheduler
-from songQ import SongQ
+from audioManager import AudioManager
 from log import log
 from time_Ambiance import *
 from subprocess import call
@@ -54,6 +54,8 @@ def mkDir(dirName):
 
 if call(['which', 'play']):
 	print("'sox' is not installed or PATH is incorrectly set")
+	print("Be sure to install extra libs for sox too:")
+	print("	apt-get install libsox-fmt-all")
 	exit(1)
 
 log('Start', '#################################')
@@ -61,8 +63,10 @@ log('Start', '       Ambiance Launched         ')
 log('Start', '#################################')
 # Setup Directories
 setup()
-# Make the SongQ
-songQ = SongQ(timeSlots, curHour())
 # Start the Scheduler
-Scheduler(songQ)
+scheduler = Scheduler()
+# Make SongQ
+songQ = SongQ(timeSlots, scheduler)
+# Make the AudioManager
+audioManager = AudioManager(scheduler, songQ)
 

@@ -1,9 +1,11 @@
 #!/usr/bin/python
-import os, errno
-from log import log
+
+from log 			 import log
+from scheduler 	 import Scheduler
+from subprocess	 import call, check_output
+from mutagen.mp3 	 import MP3
 from time_Ambiance import *
-from random import shuffle
-from mutagen.mp3 import MP3
+
 # Purpose/Function:
 #	Load music to be played for each hour
 #	Each time slot can have any number of songs (including 0)
@@ -17,59 +19,55 @@ from mutagen.mp3 import MP3
 # 	This class assumes all paths are full qualified
 # 	and doesn't do much defensive programming against the otherwise
 #
-# ToDo:
-#	Add support for multiple types of music files
-#		currently only supporting mp3
+
+SELDOM	= 10
+PERIODIC	= 5
+OFTEN		= 2
 
 class SongQ:
-	songQ			= []				# Current music lineup for the hour
-	nextSongQ	= []				# Next hour's song queue
-	timeSlots 	= dict()			# Stores Directory name locations for each hour
-	songQIndex	= 0				# Index for songs within the queue
+	FREQ			= PERIODIC
+	songQ			= []		# Current music lineup for the hour
+	songQIndex	= 0		# Index for songs within the queue
+	nextSongQ	= []		# Next hour's song queue
+	timeSlots 	= dict()	# Holds dir names for each hour
+	scheduler	= None
 	
-	def __init__(self, timeSlots, hour):
+	def __init__(self, timeSlots, scheduler_obj):
 			self.timeSlots = timeSlots
-			self.loadNextSongQ(hour); 
-			self.hourlyUpdate()
+			self.scheduler = scheduler_obj
 
-	def loadNextSongQ(self, hour):
-	# Loads new songs for the given hour and randomizes the queue
-		hour = hour % 24 # Ensure sanitized input
-		ToD = 'Night'
-		if hour > 7 and hour < 20:
-			ToD = 'Day'
-
-		# Scan the `ToD`/Music directory for songs to play
-		for curDir, subDirs, files in os.walk( os.path.join( 'TimeSlots', ToD, 'Songs' ) ):
-			for curFile in files:
-				audioFile = os.path.join(curDir, curFile)
-				self.nextSongQ.append( audioFile )
-
-		# Now scan the `ToD`/`hour`/Music directory for songs to play
-		for files in os.walk( os.path.join( 'TimeSlots', ToD, str(hour), 'Songs' ) ):
-			for curDir, subDirs, curFile in files:
-				audioFile = os.path.join(curDir, curFile)
-				self.nextSongQ.append( audioFile )
-
-		shuffle(self.nextSongQ);
-
-	def hourlyUpdate(self):
+	def loadNextSongQ(self):
 		log('SongQ', 'Loading next SongQ')
 		self.songQ, self.nextSongQ = self.nextSongQ, []
 
-	def nextSong(self):
-	# Return current indexed song, then increase index (if possible)
+	def playNextSong(self):
+	# Check size of Q, increment and play song if possible
+   # Wrap around when you reach the end
 		Qsize = len(self.songQ)
 		if Qsize > 0:
 			oldIndex = self.songQIndex
-			if self.songQIndex < Qsize-1: 	# The '-1' is proper
+			if self.songQIndex < Qsize-1: 	# The -1 is proper
 				self.songQIndex += 1
 			else:
 				self.songQIndex  = 0
-			return self.songQ[oldIndex]
+			song = self.songQ[oldIndex]
+			self.play(song)
 		else:
-			self.songQIndex = 0
-			return None;
+			self.songQIndex = 0;
+			log( 'SongQ' 'No song loaded to play' );
+
+	def play(self, song):
+		if song == None: return # log it
+		call(['play', '-q', song])
+		log( 'SongQ' 'Now playing \'' + str(song) + '\'' )
+
+		# Schedule next song
+		playTime = int(self.songPlayTime(song))
+#???	minute	= self.FREQ + (secs2min(playTime) / 60 + curMin())
+		minute	= self.FREQ + (secs2min(playTime) + curMin())
+		nextPlay = timeFormat( curHour(), minute )
+		# Schedule playNextSong at nextPlay
+		
 
 	def getSongQInfo(self):
 	# Return total time of all songs in the Song Queue in seconds
@@ -83,5 +81,10 @@ class SongQ:
 
 	def songPlayTime(self, song):
 	# Returns playtime of a song in seconds
-		return MP3(song).info.length;
+		return float(check_output(['soxi','-D', song]).strip())
+
+	def setNextSongQ(self, nextSongQ):
+	# Just a setter. Apparently these are bad in python or something?
+		self.nextSongQ = nextSongQ
+		log('SongQ', 'Recieved next hours songQ: ' + str(nextSongQ)
 

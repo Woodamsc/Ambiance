@@ -26,13 +26,21 @@ def secs2min(secs):
 	return secs / 60
 
 def timeStr(numb):
-# Formats a number so it's better
-# time compatible.
+# Formats a number so it's better time compatible.
 # e.g. 5 => '05'
+# Negatives are floored to 0. Don't give it negatives.
+	if numb < 0: numb = 0
 	if numb < 10:
 		return '0' + str(numb)
 	return str(numb);
 
+def timeFormat(hour, minute, seconds=None):
+	if seconds == None:
+		return timeStr(hour) + ':' + timeStr(minute)
+	else:
+		return timeStr(hour) + ':' + timeStr(minute)\
+									+ ':' + timeStr(seconds)
+
 def curTime():
-	return timeStr(curHour()) + ':' +timeStr(curMin()) + ':' + timeStr(curSec());
+	return timeFormat(curHour(), curMin(), curSec())
 
