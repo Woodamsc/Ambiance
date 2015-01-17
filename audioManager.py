@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from scheduler import Scheduler
+import scheduler
 from songQ import SongQ
 from log import log
 from time_Ambiance import *
@@ -17,14 +17,13 @@ from random import shuffle
 #  Background stuff should do background stuff.
 
 class AudioManager:
-	scheduler   = None
 	songQ 		= None
 	backgrounds = list # list of bg files. obj for each
 
-	def __init__(self, scheduler_obj, songQ_obj):
+	def __init__(self, songQ_obj):
+		log('AudioMngr', 'AudioManager created')
 		# Register functions with scheduler
 		# Probably just a function to be run every hour
-		self.scheduler = scheduler_obj
 		self.songQ = songQ_obj
 
 		# Start the party
@@ -33,8 +32,8 @@ class AudioManager:
 		self.songQ.playNextSong()
 
 		# Keep the party going
-		scheduler.register_func_hourly_head( endOfHourUpdate )
-		scheduler.register_func_hourly_tail( startOfHourUpdate )
+		scheduler.register_func_hourly_head( self.endOfHourUpdate )
+		scheduler.register_func_hourly_tail( self.startOfHourUpdate )
 
 	def endOfHourUpdate(self):
 		# Called at `*:59`
@@ -48,28 +47,31 @@ class AudioManager:
 		self.songQ.playNextSong()
 
 
-	def prepSongQ( self, hour )
+	def prepSongQ(self, hour):
 	# Prepare the next hours songQ ahead of time
+		nextSongQ = list()
 		hour = hour % 24 # Ensure Sane input
 		ToD  = 'Day' if hour < 20 and hour > 7 else 'Night'
 
-		srchDir	 = path.join( 'TimeSlots', ToD, 'Songs' )
-		nextSongQ = self.scanDir( searchFolder )
+		srchDir = path.join( 'TimeSlots', ToD, 'Songs' )
+		nextSongQ.extend( self.scanDir( srchDir ) )
 
-		srchDir = path.join( 'TimeSlots', ToD, hour, 'Songs' )
-		nextSongQ.append( self.scanDir( srchDir ) )
+		srchDir = path.join( 'TimeSlots', ToD, str(hour), 'Songs' )
+		nextSongQ.extend( self.scanDir( srchDir ) )
+
 		shuffle( nextSongQ )
-		self.songQ.setNextSongQ( nextSongQ )
+		self.songQ.setNextSongQ( nextSongQ );
 
 	def scanDir(self, folder):
+		log('AudioMngr', 'Scanning directory ' + str(folder) )
 		songList = list()
 		try:
 			for curDir, subDirs, files in walk( folder ):
 				for curFile in files:
 					audioFile = path.join( curDir, curFile )
 					songList.append( audioFile )
-		except Exception e:
-			log( 'AudioManager',
+		except Exception, e:
+			log( 'AudioMngr',
 			     'Error in scanning Directory ' + str(folder)
 				  + ' : ' + e )
 		return songList

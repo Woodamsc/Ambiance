@@ -3,6 +3,7 @@
 import os, errno
 
 from scheduler import Scheduler
+from songQ import SongQ
 from audioManager import AudioManager
 from log import log
 from time_Ambiance import *
@@ -63,10 +64,10 @@ log('Start', '       Ambiance Launched         ')
 log('Start', '#################################')
 # Setup Directories
 setup()
-# Start the Scheduler
-scheduler = Scheduler()
 # Make SongQ
-songQ = SongQ(timeSlots, scheduler)
+songQ = SongQ(timeSlots)
 # Make the AudioManager
-audioManager = AudioManager(scheduler, songQ)
+audioManager = AudioManager(songQ)
+# Start the Scheduler - infinitely loops
+scheduler = Scheduler()
 
