@@ -25,6 +25,7 @@ class Scheduler:
 
 	def loop(self):
 	# Main loop
+		log('Scheduler', 'Looping - waiting for pending tasks')
 		while True:
 			schedule.run_pending()
 			time.sleep(.5)
@@ -33,15 +34,15 @@ def cancel_registration(job):
 	schedule.cancel_job(job);
 
 def register_func_hourly_tail(func, *args):
-	register_func_hourly_at(0, 59, func, args)
+	return register_func_hourly_at( 59, func, args)
 
 def register_func_hourly_head(func, *args):
-	register_func_hourly_at(0, 0, func, args)
+	return register_func_hourly_at( 0, func, args)
 
-def register_func_hourly_at(hour, minute, func, *args):
-	time = timeFormat( hour, minute )
-	schedule.every().hour.at(time).do( run_threaded, func, *args )
-
+def register_func_hourly_at(minute, func, *args):
+	time = timeFormat( "", minute )
+	j = schedule.every().hour.at(time).do( run_threaded, func, *args )
+	return j
 def run_threaded(func, *args):
 # This will run any provided function in its own thread
 	func_threaded = threading.Thread(target=func, args=args)

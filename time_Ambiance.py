@@ -25,10 +25,13 @@ def secs2min(secs):
 		return (secs / 60) + 1
 	return secs / 60
 
-def timeStr(numb):
+def timeStr(value):
 # Formats a number so it's better time compatible.
 # e.g. 5 => '05'
 # Negatives are floored to 0. Don't give it negatives.
+	if value == "":
+		return value
+	numb = int(value)
 	if numb < 0: numb = 0
 	if numb < 10:
 		return '0' + str(numb)
