@@ -35,12 +35,12 @@ class AudioManager:
 		scheduler.register_func_hourly_head( self.endOfHourUpdate )
 		scheduler.register_func_hourly_tail( self.startOfHourUpdate )
 
-	def endOfHourUpdate(self):
+	def endOfHourUpdate(self, *args):
 		# Called at `*:59`
 		# Do cleanup or w/e for the end of the hour
 		self.prepSongQ( nextHour() )
 
-	def startOfHourUpdate(self):
+	def startOfHourUpdate(self, *args):
 		# Called at `*:00`
 		# Change things up for the new hour
 		self.songQ.loadNextSongQ()

@@ -60,19 +60,19 @@ class SongQ:
 		# Wrap in try/except?
 		Popen(['play', '-q', str(song)]) # Runs in background
 		log( 'SongQ', 'Now playing \'' + str(song) + '\'' )
+		# Shorten the song var down to just its name for logging
 
 	def scheduleNextSong(self):
 		song = self.nextSong()
-		playTime = int(self.songPlayTime(song))
+		playTime = int( self.songPlayTime(song) )
 		minute	= self.FREQ + (secs2min(playTime) + curMin())
-		hour 		= curHour()
 		if minute <= 0 or minute > 60:
 			log('songQ', 'End of hour, did not reschedule')
 			return
 		self.nextSongJob = scheduler.register_func_hourly_at(\
-								 hour, minute, self.playNextSong )
-		log('SongQ', 'Next song scheduled to play at ' 
-											+ timeFormat(hour, minute));
+								 minute, self.playNextSong )
+		log('SongQ', 'Next song scheduled to play at ' +
+											str(self.nextSongJob.next_run) )
 
 	def getSongQInfo(self):
 	# Return total time of all songs in the Song Queue in seconds
@@ -89,10 +89,10 @@ class SongQ:
 		# Wrap in try/except?
 		return float(check_output(['soxi','-D', song]).strip())
 
-	def setNextSongQ(self, nextSongQ):
+	def setNextSongQ(self, newSongQ):
 	# Just a setter. Apparently these are bad in python or something?
-		self.nextSongQ = nextSongQ
-		log('SongQ', 'Recieved next hours songQ: ' + str(nextSongQ))
+		self.nextSongQ = newSongQ
+		log('SongQ', 'Recieved next hours songQ: '+str(self.nextSongQ))
 
 	def nextSong(self):
 		index = self.songQIndex + 1
