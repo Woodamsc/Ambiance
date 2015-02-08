@@ -18,7 +18,8 @@ from random import shuffle
 
 class AudioManager:
 	songQ 		= None
-	backgrounds = list # list of bg files. obj for each
+	nextSongQ	= []
+	bgAudioList	= list # list of bg files. obj created for each
 
 	def __init__(self, songQ_obj):
 		log('AudioMngr', 'AudioManager created')
@@ -27,8 +28,8 @@ class AudioManager:
 		self.songQ = songQ_obj
 
 		# Start the party
-		self.prepSongQ( curHour() )
-		self.songQ.loadNextSongQ()
+		self.prepAudio( curHour() )
+		self.songQ.loadNextSongQ(self.nextSongQ)
 		self.songQ.playNextSong()
 
 		# Keep the party going
@@ -38,29 +39,46 @@ class AudioManager:
 	def endOfHourUpdate(self, *args):
 		# Called at `*:59`
 		# Do cleanup or w/e for the end of the hour
-		self.prepSongQ( nextHour() )
+		self.prepAudio( nextHour() )
+		for bg in bgAudioList:
+			bg.stop_and_exit()
 
 	def startOfHourUpdate(self, *args):
 		# Called at `*:00`
-		# Change things up for the new hour
-		self.songQ.loadNextSongQ()
+		# Start new set of audio for the new hour
+		self.songQ.loadNextSongQ(self.nextSongQ)
 		self.songQ.playNextSong()
+		# Create new background objects
+		i = 0
+		for bg in bgAudioList:
+			bgAudioList[i] = Background(bg)
+			i += 1;
+		# I'm sure there's a more 'pythonic' way of doing this..
 
+	def prepAudio(self, hour ):
+	# Prepare the next hours audio ahead of time
 
-	def prepSongQ(self, hour):
-	# Prepare the next hours songQ ahead of time
 		nextSongQ = list()
+		bgAudioList = list()
 		hour = hour % 24 # Ensure Sane input
 		ToD  = 'Day' if hour < 20 and hour > 7 else 'Night'
+		hour = str(hour)
 
 		srchDir = path.join( 'TimeSlots', ToD, 'Songs' )
 		nextSongQ.extend( self.scanDir( srchDir ) )
 
-		srchDir = path.join( 'TimeSlots', ToD, str(hour), 'Songs' )
+		srchDir = path.join( 'TimeSlots', ToD, hour, 'Songs' )
 		nextSongQ.extend( self.scanDir( srchDir ) )
 
+		srchDir = path.join( 'TimeSlots', ToD, 'Background' )
+		bgAudioList.extend( self.scanDir( srchDir ) )
+
+		srchDir = path.join( 'TimeSlots', ToD, hour, 'Background' )
+		bgAudioList.extend( self.scanDir( srchDir ) )
+
 		shuffle( nextSongQ )
-		self.songQ.setNextSongQ( nextSongQ );
+		self.nextSongQ = nextSongQ
+		self.bgAudioList = bgAudioList;
 
 	def scanDir(self, folder):
 		log('AudioMngr', 'Scanning directory ' + str(folder) )

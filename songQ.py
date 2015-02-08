@@ -23,7 +23,6 @@ class SongQ:
 	FREQ			= 1
 	songQ			= []		# Current music lineup for the hour
 	songQIndex	= 0		# Index for songs within the queue
-	nextSongQ	= []		# Next hour's song queue
 	timeSlots 	= dict()	# Holds dir names for each hour
 	nextSongJob = None	# Holds Job ID of a scheduled task
 	
@@ -31,9 +30,9 @@ class SongQ:
 		log('SongQ', 'SongQ created')
 		self.timeSlots = timeSlots
 
-	def loadNextSongQ(self):
+	def loadNextSongQ(self, newSongQ):
 		log('SongQ', 'Loading next SongQ')
-		self.songQ, self.nextSongQ = self.nextSongQ, []
+		self.songQ = newSongQ;
 
 	def playNextSong(self, *args):
 		self.play( self.incrementSongQ() )
@@ -43,7 +42,7 @@ class SongQ:
 		Qsize = len(self.songQ)
 		if Qsize < 1:
 			self.songQIndex = 0
-			log( 'SongQ' 'No songs are loaded to play' );
+			log( 'SongQ', 'No songs are loaded to play' );
 		else:
 			oldIndex = self.songQIndex
 			if self.songQIndex < Qsize-1: 	# The -1 is proper
@@ -89,11 +88,6 @@ class SongQ:
 		# Wrap in try/except?
 		return float(check_output(['soxi','-D', song]).strip())
 
-	def setNextSongQ(self, newSongQ):
-	# Just a setter. Apparently these are bad in python or something?
-		self.nextSongQ = newSongQ
-		log('SongQ', 'Recieved next hours songQ: '+str(self.nextSongQ))
-
 	def nextSong(self):
 		index = self.songQIndex + 1
 		if index == len(self.songQ):
@@ -102,3 +96,4 @@ class SongQ:
 
 	def curSong(self):
 		return self.songQ[self.songQIndex]
+
