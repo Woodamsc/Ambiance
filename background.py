@@ -1,7 +1,9 @@
 #!/usr/bin/python
+from time import sleep
 from os import path
 from sys import exit
-from subprocess import call, checkoutput
+from subprocess import call, check_output, Popen
+from threading import Thread
 from log import log
 from time_Ambiance import *
 # Purpose/Function:
@@ -13,23 +15,29 @@ from time_Ambiance import *
 #
 
 class Background:
-	Title 		= None
-	playTime 	= None
-	Path			= None
+	path			 = None
+	title 		 = None
+	playTime 	 = None
+	bg_thread	 = None
 
 	def __init__(self, songPath):
-		self.path 		= songPath
+		self.path 		= path.abspath(songPath)
 		self.title 		= str(path.basename( path.normpath(songPath) ))
 		self.playTime 	= float( 
-							  check_output(['Soxi', '-D', songPath]).strip()
+							  check_output(['soxi', '-D', songPath]).strip()
 							  		 )
-		self.play();
+		self.bg_thread = Thread( target=self.play )
+		self.bg_thread.start()
 
-	def play():
-		print(self.title + ' says hello!')
+	def play(self, *args):
+		log('Background', 'Looping')
+		while( True ):
+			Popen(['play', '-q', self.path])
+			log('Background', 'Playing ' + self.title)
+			sleep(self.playTime)
 
-	def stop_and_cancel():
-		exit(0)
+	def terminate(self):
+		self.bg_thread.exit(0)
 
 	@property
 	def playTime(self):

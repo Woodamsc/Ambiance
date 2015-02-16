@@ -1,5 +1,7 @@
 #!/usr/bin/python
-import schedule, threading, time
+import schedule
+from threading import Thread
+from time import sleep
 from subprocess import call
 from log import log
 from time_Ambiance import *
@@ -18,6 +20,7 @@ from songQ import SongQ
 # 	Example: https://github.com/mrhwick/schedule/blob/master/schedule/__init__.py
 
 class Scheduler:
+	SLEEP_TIME = .1
 
 	def __init__(self):
 		log('Scheduler', 'Scheduler created')
@@ -28,9 +31,9 @@ class Scheduler:
 		log('Scheduler', 'Looping - waiting for pending tasks')
 		while True:
 			schedule.run_pending()
-			time.sleep(.5)
+			sleep(self.SLEEP_TIME)
 
-def cancel_registration(job):
+def unregister(job):
 	schedule.cancel_job(job);
 
 def register_func_hourly_tail(func, *args):
@@ -43,8 +46,9 @@ def register_func_hourly_at(minute, func, *args):
 	time = timeFormat( "", minute )
 	j = schedule.every().hour.at(time).do( run_threaded, func, *args )
 	return j
+
 def run_threaded(func, *args):
 # This will run any provided function in its own thread
-	func_threaded = threading.Thread(target=func, args=args)
+	func_threaded = Thread(target=func, args=args)
 	func_threaded.start();
 

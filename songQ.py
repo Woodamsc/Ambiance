@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+from os import path
 from log 			 import log
 from subprocess	 import call, check_output, Popen
 from time_Ambiance import *
@@ -36,7 +37,7 @@ class SongQ:
 
 	def playNextSong(self, *args):
 		self.play( self.incrementSongQ() )
-		self.scheduleNextSong();
+		self.scheduleNextSong()
 
 	def incrementSongQ(self):
 		Qsize = len(self.songQ)
@@ -54,15 +55,20 @@ class SongQ:
 
 	def play(self, song):
 		if self.nextSongJob != None:
-			scheduler.cancel_registration(self.nextSongJob)
-		if song == None: return # log it
+			scheduler.unregister(self.nextSongJob)
+		if song == None: 
+			log('SongQ', 'Playlist is empty')
+			return
 		# Wrap in try/except?
-		Popen(['play', '-q', str(song)]) # Runs in background
-		log( 'SongQ', 'Now playing \'' + str(song) + '\'' )
-		# Shorten the song var down to just its name for logging
+		Popen(['play', '-q', str(song)])
+		songTitle = str(path.basename( path.normpath( song ) ) )
+		log( 'SongQ', 'Now playing \'' + songTitle + '\'' )
 
 	def scheduleNextSong(self):
 		song = self.nextSong()
+		if song == None:
+			log('SongQ', 'Can\'t schedule next song, playlist is empty')
+			return
 		playTime = int( self.songPlayTime(song) )
 		minute	= self.FREQ + (secs2min(playTime) + curMin())
 		if minute <= 0 or minute > 60:
@@ -71,7 +77,7 @@ class SongQ:
 		self.nextSongJob = scheduler.register_func_hourly_at(\
 								 minute, self.playNextSong )
 		log('SongQ', 'Next song scheduled to play at ' +
-											str(self.nextSongJob.next_run) )
+							str(self.nextSongJob.next_run) );
 
 	def getSongQInfo(self):
 	# Return total time of all songs in the Song Queue in seconds
@@ -89,8 +95,10 @@ class SongQ:
 		return float(check_output(['soxi','-D', song]).strip())
 
 	def nextSong(self):
+		if len(self.songQ) == 0:
+			return None
 		index = self.songQIndex + 1
-		if index == len(self.songQ):
+		if index >= len(self.songQ):
 			index = 0
 		return self.songQ[index]
 

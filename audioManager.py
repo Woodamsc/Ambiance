@@ -1,6 +1,8 @@
 #!/usr/bin/python
 
 import scheduler
+from background import Background
+from threading import Thread
 from songQ import SongQ
 from log import log
 from time_Ambiance import *
@@ -29,8 +31,7 @@ class AudioManager:
 
 		# Start the party
 		self.prepAudio( curHour() )
-		self.songQ.loadNextSongQ(self.nextSongQ)
-		self.songQ.playNextSong()
+		self.startOfHourUpdate()
 
 		# Keep the party going
 		scheduler.register_func_hourly_head( self.endOfHourUpdate )
@@ -40,18 +41,19 @@ class AudioManager:
 		# Called at `*:59`
 		# Do cleanup or w/e for the end of the hour
 		self.prepAudio( nextHour() )
-		for bg in bgAudioList:
-			bg.stop_and_exit()
+		for bg in self.bgAudioList:
+			bg.terminate()
 
 	def startOfHourUpdate(self, *args):
 		# Called at `*:00`
 		# Start new set of audio for the new hour
 		self.songQ.loadNextSongQ(self.nextSongQ)
 		self.songQ.playNextSong()
-		# Create new background objects
 		i = 0
-		for bg in bgAudioList:
-			bgAudioList[i] = Background(bg)
+		# loop through bg files, replace each index with the thread
+		# started to play that file
+		for bg in self.bgAudioList:
+			self.bgAudioList[i] = Background(bg)
 			i += 1;
 		# I'm sure there's a more 'pythonic' way of doing this..
 
