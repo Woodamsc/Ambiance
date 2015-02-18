@@ -76,7 +76,7 @@ class SongQ:
 			return
 		self.nextSongJob = scheduler.register_func_hourly_at(\
 								 minute, self.playNextSong )
-		log('SongQ', 'Next song scheduled to play at ' +
+		log('SongQ', 'Next song scheduled at ' +
 							str(self.nextSongJob.next_run) );
 
 	def getSongQInfo(self):
@@ -98,7 +98,7 @@ class SongQ:
 		if len(self.songQ) == 0:
 			return None
 		index = self.songQIndex + 1
-		if index >= len(self.songQ):
+		if index == len(self.songQ):
 			index = 0
 		return self.songQ[index]
 

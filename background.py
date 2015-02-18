@@ -30,10 +30,9 @@ class Background:
 		self.bg_thread.start()
 
 	def play(self, *args):
-		log('Background', 'Looping')
+		log('Background', 'Playing ' + self.title)
 		while( True ):
 			Popen(['play', '-q', self.path])
-			log('Background', 'Playing ' + self.title)
 			sleep(self.playTime)
 
 	def terminate(self):
