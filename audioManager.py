@@ -64,7 +64,7 @@ class AudioManager:
 		bgAudioList = list()
 		hour = hour % 24 # Ensure Sane input
 		ToD  = 'Day' if hour < 20 and hour > 7 else 'Night'
-		hour = str(hour)
+		hour = timeFormat(hour)
 
 		srchDir = path.join( 'TimeSlots', ToD, 'Songs' )
 		nextSongQ.extend( self.scanDir( srchDir ) )

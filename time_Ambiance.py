@@ -37,7 +37,9 @@ def timeStr(value):
 		return '0' + str(numb)
 	return str(numb);
 
-def timeFormat(hour, minute, seconds=None):
+def timeFormat(hour, minute=None, seconds=None):
+	if minute == None:
+		minute = '00'
 	if seconds == None:
 		return timeStr(hour) + ':' + timeStr(minute)
 	else:
