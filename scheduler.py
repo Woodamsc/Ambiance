@@ -36,9 +36,9 @@ from songQ import SongQ
 # 	Example: https://github.com/dbader/schedule/blob/master/FAQ.rst
 # 	Example: https://github.com/mrhwick/schedule/blob/master/schedule/__init__.py
 
-SELDOM	= 10
+SELDOMLY	= 10
 PERIODIC = 5
-OFTEN		= 2
+FREQUENT	= 2
 
 class Scheduler:
 	songPlaying = False		# Pretty straightforward boolean
@@ -63,7 +63,7 @@ class Scheduler:
 														self.hourlyUpdates )
 
 #		There shouldn't be a need to schedule the nextSongJob here.
-#		We'll atempt to play and schedule the next song on the next line.
+#		We'll attempt to play and schedule the next song on the next line.
 #		The only situation where a song won't immediately play is if
 #		it's playTime is longer than the time remaining in the hour.
 #		In which case, hourlyUpdates() is called & will create a scheduled
@@ -71,18 +71,21 @@ class Scheduler:
 		self.playNextSong()
 
 	def playNextSong(self):
+#		Schedules next time to play a song, and loads up next song to be played.
+#		A job will last the whole hour before being cancelled.
 		log('Scheduler', 'Loading next song')
 		song = self.songQ.nextSong()
 		log('Scheduler', 'Loaded \''+str(song)+'\'')
 		if song != None:
-			play(song)
+			play(song)	# Blocks until done
 
-			playTime = int(self.songQ.songPlayTime(song))
-			hour     = timeStr(curHour())
-			minute   = timeStr(self.FREQ + (secs2min(playTime) / 60) + curMin())
-			newTime  = str( hour + ':' + minute )
-			if int(minute) < 60 and int(minute) >= 0:
-				self.nextSongJob = schedule.every().hour.at(':'+minute).do( 
+			playTime = int( sec2min( self.songQ.songPlayTime(song) ) )
+			hour     = int( curHour() )
+			minute   = int( self.FREQ + curMin() + playTime )
+			newTime  = str( timeStr(hour) + ':' + timeStr(minute) )
+			endMin	= int( minute + playTime )
+			if endMin < 60 and endMin >= 0:
+				self.nextSongJob = schedule.every().hour.at(':'+str(minute)).do( 
 																				run_threaded,
 																				self.playNextSong )
 				log('Scheduler', 'Scheduled next song for ' + newTime)

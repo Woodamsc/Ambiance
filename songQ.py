@@ -4,6 +4,7 @@ from log import log
 from time_Ambiance import *
 from random import shuffle
 from mutagen.mp3 import MP3
+
 # Purpose/Function:
 #	Load music to be played for each hour
 #	Each time slot can have any number of songs (including 0)
@@ -38,16 +39,17 @@ class SongQ:
 		ToD = 'Night'
 		if hour > 7 and hour < 20:
 			ToD = 'Day'
+		hour = timeStr(hour)
 
-		# Scan the `ToD`/Music directory for songs to play
+		# Scan the `ToD`/Song directory for songs to play
 		for curDir, subDirs, files in os.walk( os.path.join( 'TimeSlots', ToD, 'Songs' ) ):
 			for curFile in files:
 				audioFile = os.path.join(curDir, curFile)
 				self.nextSongQ.append( audioFile )
 
-		# Now scan the `ToD`/`hour`/Music directory for songs to play
-		for files in os.walk( os.path.join( 'TimeSlots', ToD, str(hour), 'Songs' ) ):
-			for curDir, subDirs, curFile in files:
+		# Now scan the `ToD`/`hour`/Song directory for songs to play
+		for curDir, subDirs, files in os.walk( os.path.join( 'TimeSlots', ToD, str(hour), 'Songs' ) ):
+			for curFile in files:
 				audioFile = os.path.join(curDir, curFile)
 				self.nextSongQ.append( audioFile )
 
@@ -62,7 +64,7 @@ class SongQ:
 		Qsize = len(self.songQ)
 		if Qsize > 0:
 			oldIndex = self.songQIndex
-			if self.songQIndex < Qsize-1: 	# The '-1' is proper
+			if self.songQIndex < Qsize-1: 	# The '-1' is correct
 				self.songQIndex += 1
 			else:
 				self.songQIndex  = 0
@@ -83,5 +85,8 @@ class SongQ:
 
 	def songPlayTime(self, song):
 	# Returns playtime of a song in seconds
-		return MP3(song).info.length;
+# try:
+# except:
+# 	remove from queue
+		return int( float( MP3(song).info.length) );
 

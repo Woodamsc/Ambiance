@@ -12,8 +12,8 @@ timeSlots = dict()
 
 def setup():
 # Do some basic prep work. e.g. Generating folders
-	for hour in xrange(0,24):
-		timeSlots[hour] = timeStr(hour) + ':00'
+	for hour in range(0,24):
+		timeSlots[hour] = timeStr(hour)
 
 	createTimeSlots()
 
@@ -26,7 +26,7 @@ def createTimeSlots():
 	mkDir('TimeSlots/Night')
 	mkDir('TimeSlots/Night/Songs')
 	mkDir('TimeSlots/Night/Background')
-	for hour in xrange(0,24):
+	for hour in range(0,24):
 		if hour > 7 and hour < 20:
 			mkDir( os.path.join( 'TimeSlots/Day', timeSlots[hour] ) )
 			mkDir( os.path.join( 'TimeSlots/Day', timeSlots[hour], 'Songs' ) )
@@ -40,7 +40,7 @@ def mkDir(dirName):
 	try:
 		os.mkdir( dirName )
 		log( 'Setup', 'Created dir ' + str(dirName) )
-	except Exception, e:
+	except Exception as e:
 		if e.errno == 17:
 			pass
 		else:
@@ -51,10 +51,6 @@ def mkDir(dirName):
 # - - - - - - #
 # Start Here  #
 # - - - - - - #
-
-if call(['which', 'play']):
-	print("'sox' is not installed or PATH is incorrectly set")
-	exit(1)
 
 log('Start', '#################################')
 log('Start', '       Ambiance Launched         ')
