@@ -1,9 +1,8 @@
 #!/usr/bin/python
-import os, errno
+import os, errno, mutagen
 from log import log
 from time_Ambiance import *
 from random import shuffle
-from mutagen.mp3 import MP3
 
 # Purpose/Function:
 #	Load music to be played for each hour
@@ -44,14 +43,16 @@ class SongQ:
 		# Scan the `ToD`/Song directory for songs to play
 		for curDir, subDirs, files in os.walk( os.path.join( 'TimeSlots', ToD, 'Songs' ) ):
 			for curFile in files:
-				audioFile = os.path.join(curDir, curFile)
-				self.nextSongQ.append( audioFile )
+				file = os.path.join(curDir, curFile)
+				if self.isAudioFile( file ):
+					self.nextSongQ.append( file )
 
 		# Now scan the `ToD`/`hour`/Song directory for songs to play
 		for curDir, subDirs, files in os.walk( os.path.join( 'TimeSlots', ToD, str(hour), 'Songs' ) ):
 			for curFile in files:
-				audioFile = os.path.join(curDir, curFile)
-				self.nextSongQ.append( audioFile )
+				file = os.path.join(curDir, curFile)
+				if self.isAudioFile( file ):
+					self.nextSongQ.append( file )
 
 		shuffle(self.nextSongQ);
 
@@ -82,11 +83,23 @@ class SongQ:
 		for song in self.SongQ:
 			totalTime = totalTime + self.songPlayTime(song)
 		return totalTime;
+	
+	def isAudioFile(self, song):
+		try:
+			fTypes = mutagen.File(song).mime
+			for fType in fTypes:
+				if 'audio' in fType:
+					return True
+		except:
+			log( 'SongQ', 'Mutagen could not determine file type of ' + str(song) + ', or it has no mime types' )
+		return False;
 
 	def songPlayTime(self, song):
 	# Returns playtime of a song in seconds
-# try:
-# except:
-# 	remove from queue
-		return int( float( MP3(song).info.length) );
-
+		try:
+			playTime = int( float( mutagen.File(song).info.length) );
+		except:
+			log('SongQ', 'Mutagen could not get play time of ' + str(song) + '. Removing from Queue')
+			playTime = 0
+# 		remove from queue
+		return playTime;

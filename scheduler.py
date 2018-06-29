@@ -77,21 +77,18 @@ class Scheduler:
 		song = self.songQ.nextSong()
 		log('Scheduler', 'Loaded \''+str(song)+'\'')
 		if song != None:
-			play(song)	# Blocks until done
-
-			playTime = int( sec2min( self.songQ.songPlayTime(song) ) )
+			playTime = int( sec2min( self.songQ.songPlayTime(song) ) ) #Rounded up to nearest min
 			hour     = int( curHour() )
 			minute   = int( self.FREQ + curMin() + playTime )
-			newTime  = str( timeStr(hour) + ':' + timeStr(minute) )
-			endMin	= int( minute + playTime )
-			if endMin < 60 and endMin >= 0:
+			if minute < 60 and minute >= 0:
 				self.nextSongJob = schedule.every().hour.at(':'+str(minute)).do( 
 																				run_threaded,
 																				self.playNextSong )
-				log('Scheduler', 'Scheduled next song for ' + newTime)
+				log('Scheduler', 'Scheduled next song for ' + str( timeStr(hour) + ':' + timeStr(minute) ))
 			else:
 				schedule.cancel_job(self.nextSongJob) # should get cancelled soon anyway
 				log('Scheduler', 'End of hour, did not reschedule.')
+			play(song)	# Blocks until done
 
 	def hourlyUpdates(self, *unused):
 		log('Scheduler', 'Turn of hour, running updates')
